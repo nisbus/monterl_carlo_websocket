@@ -1,0 +1,10 @@
+.eunit
+deps
+priv
+*.o
+*.beam
+*.plt
+*#README.md#
+.#*
+*.*~
+rel/monterl_carlo_websocket/*
