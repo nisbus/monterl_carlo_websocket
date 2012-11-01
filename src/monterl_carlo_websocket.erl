@@ -17,9 +17,8 @@ start(_StartType, _StartArgs) ->
 			    {mimetypes, [{<<".js">>, [<<"text/javascript">>]}]}]},
 			 {'_', monterl_carlo_websocket_handler, []}
 		      ]}],  
-    %% Name, NbAcceptors, Transport, TransOpts, Protocol, ProtoOpts  
-    %% Listen in 10100/tcp for http connections.  
-    cowboy:start_http(http, 100, [{port, 8080}],[{dispatch, Dispatch}]),  
+    Port = list_to_integer(os:getenv("PORT")),
+    cowboy:start_http(http, 100, [{port, Port}],[{dispatch, Dispatch}]),  
     monterl_carlo_websocket_sup:start_link().  
   
 stop(_State) ->  
