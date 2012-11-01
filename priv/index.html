@@ -1,0 +1,140 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <script src="/jquery.flot.js"></script>
+    <style
+  <title>Monterl_Carlo</title>
+  </head>
+  <body>
+    <h1>Monterl_Carlo</h1>
+    <div id="wrapper">
+      <div id="container">
+	<div id="log">
+	</div>
+	<div id="chart" style="width:600px;height:300px; padding:0px;position:relative;">
+	</div>
+	<div id="symbol_ctrl" class="ctrls">
+	  <input id="symbol" type="text" value="MARL" width="50px" >
+	  <button id="btncreate">CREATE</button>
+	  <button id="btnkill">KILL</button>
+	</div>
+	<div id="sub_ctrl">
+	  <input id="inprice" type="number" step="0.01" value="100.55"/>
+	  <input id="inprecision" type="number" value="5"/>
+	  <input id="annvol" type="number" value="0.1" step="0.1"/>
+	  <input id="annret" type="number" value="0.1" step="0.1"/>
+	  <input id="interval" type="number" value="1000" step="100"/>
+	  <button id="btnsub">Subscribe</button>
+	  <button id="btnunsub">Unubscribe</button>
+	</div>
+	<div id="graph_ctrl">
+	  <input type="number" id="points" value="50" step="10"/>	  
+	  <select id="graph_type">
+	    <option value="bid">Bids</option>
+	    <option value="ask">Asks</option>
+	    <option value="both">Both</option>
+	    <option value="stats">Statistics</option>
+	  </select>
+	  <button id="btngraph">Graph</button>
+	</div>
+      </div>
+    </div>
+    
+    <script type="text/javascript">
+      if(!data)
+        var data = [];
+      $(document).ready(function() {
+      $('#btncreate').click(function(){
+         var symbol = $("#symbol").val();
+         var px = $("#inprice").val();
+         var prec = $("#inprecision").val();
+         var annvol = $("#annvol").val();
+         var annret = $("#annret").val();
+         var inter = $("#interval").val();
+         var start_msg = {"type":"start","symbol":symbol,
+                    "price":px, "precision":prec,
+                    "annual_volatility":annvol, 
+                    "annual_expected_returns":annret, 
+                    "interval":inter};         
+         window.socket.send(JSON.stringify(start_msg));         
+      });
+      $('#btnkill').click(function(){
+         var symbol = $("#symbol").val();
+         var kill_msg = {"type":"stop","symbol":symbol};
+         window.socket.send(JSON.stringify(kill_msg));         
+      });
+      
+      $('#btnsub').click(function(){
+         data=[];
+         var symbol = $("#symbol").val();
+         var sub_msg = {"type":"subscribe","symbol":symbol};
+         window.socket.send(JSON.stringify(sub_msg));
+      });
+      $('#btnunsub').click(function(){
+         var symbol = $("#symbol").val();
+         var sub_msg = {"type":"unsubscribe","symbol":symbol};
+         window.socket.send(JSON.stringify(sub_msg));
+      });
+      $('#btngraph').click(function(){
+         data=[];
+         var symbol = $("#symbol").val();
+         var points = $("#points").val();
+         var graphtype = $("#graph_type").val();
+         var grap_msg = {"type":"graph","points":points,"symbol":symbol,"graph_type":graphtype};
+         window.socket.send(JSON.stringify(grap_msg));
+      });
+      console.log("connecting");
+      connect();
+      });
+      function connect(){
+        window.socket = new WebSocket("ws://localhost:8080/ws");
+        window.socket.onopen = function(){
+            console.log("open");
+            message('<p>'+ready_state_to_string(socket.readyState));	
+	};
+	window.socket.onmessage = function(msg){
+	  var j = JSON.parse(msg.data);
+	  if(j.graph){
+	    plotit(j.graph);
+	  }
+	  else if(j.point){
+	    updatechart(j.point);
+	  }
+	};
+	window.socket.onclose = function(){
+
+	  message('<p>'+ready_state_to_string(socket.readyState));
+	};
+      };
+      function message(msg){
+	$('#log').html(msg+'</p>')
+      };	
+	  
+      function plotit(seriesData){
+          seriesData[0].forEach(function(d){          
+             data.push([d.point.counter, d.point.bid]);
+          });                   
+          $.plot($('#chart'),[data]);
+      };
+      function updatechart(point){      
+          data.push([point.counter,point.bid]);
+          $.plot($('#chart'),[data]);
+      };
+      function start(symbol){
+         window.socket.send({"type":"start","symbol":symbol});
+      };
+      function graph(symbol){
+        window.socket.send(JSON.stringify({"type":"graph","symbol":symbol,"graph_type":"bid","points":1}));
+      };
+      function ready_state_to_string(state){
+        if(state == 0)
+          return 'connecting';
+        else if(state == 1)
+          return 'connected';
+        else
+          return 'disconnected';
+      };
+    </script>
+  </body>
+</html>
