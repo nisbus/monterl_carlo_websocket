@@ -7,3 +7,4 @@ deps
 .#*
 *.*~
 rel/monterl_carlo_websocket/*
+erl_crash.dump
