@@ -6,4 +6,6 @@
                         monterl_carlo_websocket_handler,
                         monterl_carlo_websocket_sup]},
               {applications,[kernel,stdlib,inets,crypto,jsx,cowboy]},
-              {mod,{monterl_carlo_websocket,[]}}]}.
+              {mod,{monterl_carlo_websocket,[]}},
+              {env,[]},
+              {start_phases,[{listen,[]}]}]}.
