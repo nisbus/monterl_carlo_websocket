@@ -17,9 +17,8 @@
 	}).
 
 % Called to know how to dispatch a new connection.  
-init(_Any, _Req, _Opts) ->  
-    
-    {upgrade, protocol, cowboy_http_websocket}.  
+init(_Any, _Req, _Opts) ->      
+    {upgrade, protocol, cowboy_websocket}.
   
 % Should never get here.  
 handle(_Req, State) ->  
@@ -66,10 +65,14 @@ handle_message(Msg,Req,#state{callback = Callback} = State) ->
 	<<"graph">> -> 
 	    Symbol = proplists:get_value(<<"symbol">>,Props),
 	    Points = proplists:get_value(<<"points">>,Props,50),
-	    Type = proplists:get_value("type",Props,bid),
-	    Resp = monterl_carlo:graph(Symbol,Points,Type),
+	    GraphType = proplists:get_value("graph_type",Props,bid),
+	    Resp = monterl_carlo:graph(Symbol,Points,GraphType),
 	    {reply,{text,jsx:term_to_json(Resp),Req,State}};	    
 	<<"subscribe">> -> 
+	    Symbol = proplists:get_value(<<"symbol">>,Props),
+	    monterl_carlo:start(Symbol,Callback),
+	    {ok, Req, State};
+	<<"start">> ->
 	    Symbol = proplists:get_value(<<"symbol">>,Props),
 	    Px = proplists:get_value(<<"price">>,Props),
 	    Precision = proplists:get_value(<<"precision">>,Props),
@@ -77,8 +80,7 @@ handle_message(Msg,Req,#state{callback = Callback} = State) ->
 	    AnnualExpRet = proplists:get_value(<<"annual_expected_returns">>,Props),
 	    Interval = proplists:get_value(<<"interval">>,Props),
 	    {ok, Pid} = monterl_carlo:start_link(Symbol,Px,Precision,Annual_Vol,AnnualExpRet,Interval),
-	    monterl_carlo:start(Symbol,Callback),
-	    {ok, Req, State#state{sim_pid = Pid}};
+	    {ok, Req, State#state{sim_pid=Pid}};
 	_ ->
 	    {ok, Req, State}
     end.
