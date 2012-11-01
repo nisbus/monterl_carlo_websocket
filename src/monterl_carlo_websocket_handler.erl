@@ -34,7 +34,7 @@ terminate(_Req, _State) ->
 websocket_init(_Any, Req, []) ->  
 %    Req2 = cowboy_http_req:compact(Req),
     Client = self(),
-    C = fun(X) -> Client ! {send,jsx:term_to_json(X)} end,
+    C = fun(X) -> Client ! {send,jsx:to_json(X)} end,
     {ok, Req, #state{callback = C}}.  
   
 % Called when a text message arrives.  
@@ -60,27 +60,41 @@ websocket_terminate(_Reason, _Req, _State) ->
 
 handle_message(Msg,Req,#state{callback = Callback} = State) ->
     Props = jsx:json_to_term(Msg),
-    Type = proplists:get_value(<<"type">>,Props),
+    Type = case is_list(Props) of
+	       true -> proplists:get_value(<<"type">>,Props,undefined);
+	       false -> undefined
+	   end,
     case Type of
 	<<"graph">> -> 
 	    Symbol = proplists:get_value(<<"symbol">>,Props),
 	    Points = proplists:get_value(<<"points">>,Props,50),
-	    GraphType = proplists:get_value("graph_type",Props,bid),
+	    GraphType = proplists:get_value(<<"graph_type">>,Props,<<"both">>),
 	    Resp = monterl_carlo:graph(Symbol,Points,GraphType),
-	    {reply,{text,jsx:term_to_json(Resp),Req,State}};	    
+	    Callback(Resp),
+	    {ok, Req, State};
 	<<"subscribe">> -> 
 	    Symbol = proplists:get_value(<<"symbol">>,Props),
-	    monterl_carlo:start(Symbol,Callback),
+	    monterl_carlo:subscribe(Symbol,Callback),
 	    {ok, Req, State};
 	<<"start">> ->
 	    Symbol = proplists:get_value(<<"symbol">>,Props),
-	    Px = proplists:get_value(<<"price">>,Props),
-	    Precision = proplists:get_value(<<"precision">>,Props),
-	    Annual_Vol = proplists:get_value(<<"annual_volatility">>,Props),
-	    AnnualExpRet = proplists:get_value(<<"annual_expected_returns">>,Props),
-	    Interval = proplists:get_value(<<"interval">>,Props),
-	    {ok, Pid} = monterl_carlo:start_link(Symbol,Px,Precision,Annual_Vol,AnnualExpRet,Interval),
+	    Px = proplists:get_value(<<"price">>,Props,100.50),
+	    Precision = proplists:get_value(<<"precision">>,Props,5),
+	    Annual_Vol = proplists:get_value(<<"annual_volatility">>,Props,0.1),
+	    AnnualExpRet = proplists:get_value(<<"annual_expected_returns">>,Props,0.1),
+	    Interval = proplists:get_value(<<"interval">>,Props,1000),
+	    Resp = monterl_carlo:start_link(Symbol,Px,Precision,Annual_Vol,AnnualExpRet,Interval),
+	    {ok, Pid} = Resp,
 	    {ok, Req, State#state{sim_pid=Pid}};
+	<<"unsubscribe">> -> 
+	    Symbol = proplists:get_value(<<"symbol">>,Props),
+	    monterl_carlo:unsubscribe(Symbol),
+	    {ok, Req, State};
+	<<"stop">> -> 
+	    Symbol = proplists:get_value(<<"symbol">>,Props),
+	    monterl_carlo:stop(Symbol),
+	    {ok, Req, State};
 	_ ->
+	    io:format("Ignoring request~n"),
 	    {ok, Req, State}
     end.
