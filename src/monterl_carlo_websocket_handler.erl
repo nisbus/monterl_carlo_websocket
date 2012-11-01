@@ -12,7 +12,8 @@
 ]).  
 -record(state,
 	{
-	  callback
+	  callback,
+	  sim_pid
 	}).
 
 % Called to know how to dispatch a new connection.  
@@ -34,7 +35,7 @@ terminate(_Req, _State) ->
 websocket_init(_Any, Req, []) ->  
 %    Req2 = cowboy_http_req:compact(Req),
     Client = self(),
-    C = fun(X) -> Client ! {send,X} end,
+    C = fun(X) -> Client ! {send,jsx:term_to_json(X)} end,
     {ok, Req, #state{callback = C}}.  
   
 % Called when a text message arrives.  
@@ -50,7 +51,7 @@ websocket_handle(_Any, Req, State) ->
     {ok, Req, State}.  
 
 websocket_info({send,Message}, Req, State) ->  
-    {reply, {text, jsx:term_to_json(Message)}, Req, State};
+    {reply, {text, Message}, Req, State};
   
 websocket_info(_Info, Req, State) ->     
     {ok, Req, State, hibernate}.  
@@ -58,11 +59,26 @@ websocket_info(_Info, Req, State) ->
 websocket_terminate(_Reason, _Req, _State) ->  
     ok.  
 
-handle_message(Msg,Req,State) ->
+handle_message(Msg,Req,#state{callback = Callback} = State) ->
     Props = jsx:json_to_term(Msg),
-    Type = proplists:get_value("type",Props),
+    Type = proplists:get_value(<<"type">>,Props),
     case Type of
-	<<"graph">> -> void;
-	<<"subscribe">> -> void
-    end,
-    {reply,{text,Msg,Req,State}}.
+	<<"graph">> -> 
+	    Symbol = proplists:get_value(<<"symbol">>,Props),
+	    Points = proplists:get_value(<<"points">>,Props,50),
+	    Type = proplists:get_value("type",Props,bid),
+	    Resp = monterl_carlo:graph(Symbol,Points,Type),
+	    {reply,{text,jsx:term_to_json(Resp),Req,State}};	    
+	<<"subscribe">> -> 
+	    Symbol = proplists:get_value(<<"symbol">>,Props),
+	    Px = proplists:get_value(<<"price">>,Props),
+	    Precision = proplists:get_value(<<"precision">>,Props),
+	    Annual_Vol = proplists:get_value(<<"annual_volatility">>,Props),
+	    AnnualExpRet = proplists:get_value(<<"annual_expected_returns">>,Props),
+	    Interval = proplists:get_value(<<"interval">>,Props),
+	    {ok, Pid} = monterl_carlo:start_link(Symbol,Px,Precision,Annual_Vol,AnnualExpRet,Interval),
+	    monterl_carlo:start(Symbol,Callback),
+	    {ok, Req, State#state{sim_pid = Pid}};
+	_ ->
+	    {ok, Req, State}
+    end.
