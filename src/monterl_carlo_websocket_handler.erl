@@ -52,7 +52,6 @@ websocket_handle(_Any, Req, State) ->
     {ok, Req, State}.  
 
 websocket_info({send,Message}, Req, State) -> 
-    io:format("Sending: ~p~n",[Message]),
     {reply, {text, Message}, Req, State};
   
 websocket_info(_Info, Req, State) ->     
@@ -62,7 +61,6 @@ websocket_terminate(_Reason, _Req, _State) ->
     ok.  
 
 handle_message(Msg,Req,#state{callback = Callback} = State) ->
-    io:format("Received message ~p~n",[Msg]),
     Props = jsx:json_to_term(Msg),
     Type = case is_list(Props) of
 	       true -> proplists:get_value(<<"type">>,Props,undefined);

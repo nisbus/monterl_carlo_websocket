@@ -7,13 +7,13 @@ start(_StartType, _StartArgs) ->
     %% Dispatch the requests (whatever the host is) to  
     %% erws_handler, without any additional options.  
     Dispatch = [{'_', [  
-			 {[<<"index.htm">>,'...'], cowboy_static,
+			 {[<<"index.html">>,'...'], cowboy_static,
 			  [ {directory, {priv_dir, monterl_carlo_websocket,[]}},
-			    {file,<<"index.htm">>},
-			    {mimetypes, [{<<".html">>, [<<"text/html">>]}]}]},
-			 {[<<"flot.jquery.js">>,'...'],cowboy_static,
+			    {file,<<"index.html">>},
+			    {mimetypes,[{<<".html">>, [<<"text/html">>]}]}]},
+			 {[<<"jquery.flot.js">>,'...'],cowboy_static,
 			  [ {directory, {priv_dir, monterl_carlo_websocket,[]}},
-			    {file,<<"flot.jquery.js">>},
+			    {file,<<"jquery.flot.js">>},
 			    {mimetypes, [{<<".js">>, [<<"text/javascript">>]}]}]},
 			 {'_', monterl_carlo_websocket_handler, []}
 		      ]}],  
