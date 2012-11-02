@@ -86,8 +86,20 @@
       console.log("connecting");
       connect();
       });
+      function getPort(){
+        if(location.port != ''){
+           return location.port;
+        }
+        else if(location.protocol== 'http'){
+          return 80;    
+        }
+        else if(location.protocol== 'https'){
+          return 443;    
+        }    
+      }
       function connect(){
-        window.socket = new WebSocket("ws://localhost:8080/ws");
+        var port = getPort();
+        window.socket = new WebSocket("ws://localhost:"+port+"/ws");
         window.socket.onopen = function(){
             console.log("open");
             message('<p>'+ready_state_to_string(socket.readyState));	
