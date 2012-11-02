@@ -46,7 +46,8 @@ start_phase(listen,_Type,_Args) ->
 			 {'_', monterl_carlo_websocket_handler, []}
 		      ]}],  
 
-    cowboy:start_http(http, 100, [{port, config(http_port)}],[{dispatch, Dispatch}]).
+    cowboy:start_http(http, 100, [{port, config(http_port)}],[{dispatch, Dispatch}]),
+    ok.
 
 start_ok(_App, _Type, ok) -> ok;
 start_ok(_App, _Type, {error, {already_started, _App}}) -> ok;
