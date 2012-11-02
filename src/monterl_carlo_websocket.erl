@@ -44,8 +44,7 @@ start_phase(listen,_Type,_Args) ->
 			    {file,<<"jquery.flot.js">>},
 			    {mimetypes, [{<<".js">>, [<<"text/javascript">>]}]}]},
 			 {'_', monterl_carlo_websocket_handler, []}
-		      ]}],  
-
+		      ]}],
     cowboy:start_http(http, 100, [{port, config(http_port)}],[{dispatch, Dispatch}]),
     ok.
 
