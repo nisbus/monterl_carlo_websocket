@@ -3,8 +3,6 @@
   {description, ""},
   {vsn, "1"},
   {registered, []},
-  {modules,[monterl_carlo_websocket,
-	    monterl_carlo_websocket_handler]},
   {applications, [
                   kernel,
                   stdlib,
@@ -13,5 +11,9 @@
 		  jsx,
 		  cowboy
                  ]},
-  {mod, { monterl_carlo_websocket, []}}
+  {mod, { monterl_carlo_websocket, []}},
+  {env,[]},
+  {start_phases,
+  [{listen,[]}
+  ]}
  ]}.
