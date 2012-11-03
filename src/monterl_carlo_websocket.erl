@@ -45,7 +45,7 @@ start_phase(listen,_Type,_Args) ->
 			    {mimetypes, [{<<".js">>, [<<"text/javascript">>]}]}]},
 			 {'_', monterl_carlo_websocket_handler, []}
 		      ]}],
-    cowboy:start_http(http, 100, [{port, config(http_port)}],[{dispatch, Dispatch}]),
+    cowboy:start_http(http, 100, [{port, config(http_port,8080)}],[{dispatch, Dispatch}]),
     ok.
 
 start_ok(_App, _Type, ok) -> ok;
