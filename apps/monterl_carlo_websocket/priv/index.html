@@ -2,7 +2,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-    <script src="/jquery.flot.js"></script>
+    <script src="http://monterl_carlo.nisbus.com/jquery.flot.js"></script>
   <title>Monterl_Carlo</title>
   </head>
   <body>
@@ -87,7 +87,7 @@
       connect();
       });
       function connect(){
-        window.socket = new WebSocket("ws://localhost:8080/ws");
+        window.socket = new WebSocket("ws://176.58.119.250:8080/ws");
         window.socket.onopen = function(){
             console.log("open");
             message('<p>'+ready_state_to_string(socket.readyState));	
