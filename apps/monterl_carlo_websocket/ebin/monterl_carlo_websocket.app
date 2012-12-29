@@ -1,0 +1,11 @@
+{application,monterl_carlo_websocket,
+             [{description,[]},
+              {vsn,"1"},
+              {registered,[]},
+              {applications,[kernel,stdlib,inets,crypto,jsx,cowboy]},
+              {mod,{monterl_carlo_websocket,[]}},
+              {env,[]},
+              {start_phases,[{listen,[]}]},
+              {modules,[monterl_carlo_websocket,
+                        monterl_carlo_websocket_handler,
+                        monterl_carlo_websocket_sup]}]}.
